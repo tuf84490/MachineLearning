@@ -247,7 +247,8 @@ centroids = kmeans.cluster_centers_
 fig = plt.figure(figsize=(5, 5))
 
 colmap = {1: 'r', 2: 'g', 3: 'b'}
-colors = map(lambda x: colmap[x+1], labels)
+col = map(lambda x: colmap[x+1], labels)
+colors = list(col)
 
 plt.scatter(data_frame['x'], data_frame['y'], color=colors, alpha=0.5, edgecolor='k')
 for idx, centroid in enumerate(centroids):

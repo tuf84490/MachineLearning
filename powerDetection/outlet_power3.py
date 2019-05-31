@@ -304,13 +304,8 @@ for dictionary in instances_merged:
 #graph the clusters
 fig = plt.figure(figsize=(5, 5))
 colmap = {1: 'r', 2: 'g', 3: 'b'}
-<<<<<<< HEAD
 col = map(lambda x: colmap[x+1], labels) #this works on python 3. to make this work on python 2, change col to colors
 colors = list(col)                       #and then delete this line
-=======
-col = map(lambda x: colmap[x+1], labels)
-colors = list(col)
->>>>>>> 3d4f796768e6ab02389eb9f0fee3583408ef480e
 plt.scatter(data_frame['x'], data_frame['y'], color=colors, alpha=0.5, edgecolor='k')
 for idx, centroid in enumerate(centroids):
     plt.scatter(*centroid, color=colmap[idx+1])

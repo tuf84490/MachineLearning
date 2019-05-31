@@ -237,9 +237,8 @@ data_frame = pd.DataFrame({
     'x': x_clusters,
     'y': y_clusters
 })
-print(x_clusters)
-print(y_clusters)
-kmeans = KMeans(n_clusters=3, max_iter=8, init='random')
+
+kmeans = KMeans(n_clusters=3, max_iter=8, init='random') #max_iter is the K value. Just change that to any value to set the K for K clustering
 kmeans.fit(data_frame)
 
 labels = kmeans.predict(data_frame)
@@ -253,8 +252,8 @@ colors = map(lambda x: colmap[x+1], labels)
 plt.scatter(data_frame['x'], data_frame['y'], color=colors, alpha=0.5, edgecolor='k')
 for idx, centroid in enumerate(centroids):
     plt.scatter(*centroid, color=colmap[idx+1])
-plt.xlim(0, 10)
-plt.ylim(1300, 1500)
+plt.xlim(0, 90)
+plt.ylim(850, 1500)
 plt.show()
 
 ### The clusters will be matched to the coffee machine, stove or kettle based on some common sense knowledge

@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.cluster import KMeans
+import pprint #used to make output easier to read for demo purposes
 f1 = open('outlet_power1.txt', 'r') # This file is the combination of the three below
 fc = open('outlet_power_coffee.txt', 'r')
 fs = open('outlet_power_stove.txt', 'r')
@@ -83,6 +84,46 @@ def slice_data(powers, times):
                 last_big_power = 0
                 last_big_time = 0
     return instances
+
+def findMaxPower(data, cluster):
+    max = 0
+    for dic in data:
+        if (dic['id'] == cluster):
+            if (dic['power'] > max):
+                max = dic['power']
+    for dic2 in data:
+        if (dic2['id'] == cluster):
+            dic2['max_power'] = max
+
+def findMinPower(data, cluster):
+    min = 99999
+    for dic in data:
+        if (dic['id'] == cluster):
+            if (dic['power'] < min):
+                min = dic['power']
+    for dic2 in data:
+        if (dic2['id'] == cluster):
+            dic2['min_power'] = min
+
+def findMinVal(data, cluster):
+    min = 99999
+    for dic in data:
+        if (dic['id'] == cluster):
+            if (dic['duration'] < min):
+                min = dic['duration']
+    for dic2 in data:
+        if (dic2['id'] == cluster):
+            dic2['min_duration'] = min
+
+def findMaxVal(data, cluster):
+    max = 0
+    for dic in data:
+        if (dic['id'] == cluster):
+            if (dic['duration'] > max):
+                max = dic['duration']
+    for dic2 in data:
+        if (dic2['id'] == cluster):
+            dic2['max_duration'] = max
 
 # read the merged data
 fri = []
@@ -228,33 +269,50 @@ plt.show()
 ###   max_cluster_power: the maximum power value of instances in the current instance's cluster
 ###   min_cluster_power: 
 instances_merged = instances_fri + instances_sat + instances_sun
-#print(instances_merged)
 
+#put the data into a data frame object for easy use by python KMeans class
 x_clusters = [i['duration'] for i in instances_merged]
 y_clusters = [i['power'] for i in instances_merged]
-
 data_frame = pd.DataFrame({
     'x': x_clusters,
     'y': y_clusters
 })
 
+#create the KMeans object with K value = 8 and the number of clusters set to be 3
 kmeans = KMeans(n_clusters=3, max_iter=8, init='random') #max_iter is the K value. Just change that to any value to set the K for K clustering
-kmeans.fit(data_frame)
-
-labels = kmeans.predict(data_frame)
+kmeans.fit(data_frame)  #fit the data to the model
+labels = kmeans.predict(data_frame) #run the model
 centroids = kmeans.cluster_centers_
 
-fig = plt.figure(figsize=(5, 5))
+#add an ID to each datapoint based on their cluster
+index = 0
+for i in labels:
+    instances_merged[index]["id"] = i
+    index = index + 1
 
+#add the max and min of power and duration on each datapoint in cluster
+for i in range(0,3):
+    findMaxPower(instances_merged, i)
+    findMaxVal(instances_merged, i)
+    findMinPower(instances_merged, i)
+    findMinVal(instances_merged, i)
+
+#print each datapoint cleanly
+for dictionary in instances_merged:
+    pprint.pprint(dictionary)
+
+#graph the clusters
+fig = plt.figure(figsize=(5, 5))
 colmap = {1: 'r', 2: 'g', 3: 'b'}
 col = map(lambda x: colmap[x+1], labels)
 colors = list(col)
-
 plt.scatter(data_frame['x'], data_frame['y'], color=colors, alpha=0.5, edgecolor='k')
 for idx, centroid in enumerate(centroids):
     plt.scatter(*centroid, color=colmap[idx+1])
 plt.xlim(0, 90)
+plt.xlabel("duration", fontsize=15)
 plt.ylim(850, 1500)
+plt.ylabel("power", fontsize=12)
 plt.show()
 
 ### The clusters will be matched to the coffee machine, stove or kettle based on some common sense knowledge

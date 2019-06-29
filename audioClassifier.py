@@ -3,13 +3,15 @@ from keras.layers import Dropout, Dense, TimeDistributed
 from keras.models import Sequential
 from keras.utils import to_categorical
 from sklearn.utils.class_weight import compute_class_weight
-from python_speech_features import mfcc
+from python_speech_features import mfcc, logfbank
 from tqdm import tqdm
 import os
 import pandas as pd
 import numpy as np
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
+import librosa
+
 
 def build_rand_feat():
     X = []
@@ -56,6 +58,9 @@ def get_recurrent_model():
     model = Sequential()
     model.add(LSTM(128,return_sequences=True, input_shape=input_shape))
     model.add(LSTM(128,return_sequences=True))
+    model.add(LSTM(128,return_sequences=True))
+    model.add(LSTM(128,return_sequences=True))
+    model.add(LSTM(128,return_sequences=True))
     model.add(Dropout(0.5))
     model.add(TimeDistributed(Dense(64, activation='relu')))
     model.add(TimeDistributed(Dense(32, activation='relu')))
@@ -76,7 +81,6 @@ class Config:
         self.rate = rate
         self.step = int(rate/10)
 
-#read in the csv with the training metadata, replace this line to train with other data
 df = pd.read_csv("ESC-50-master/meta/esc50.csv")
 df = df.set_index('filename')
 
@@ -84,7 +88,7 @@ df = df.set_index('filename')
 #read in the rate and signal of all the audio files
 #store the audio data in a dataframe. This dataframe contains all the audio data, their class, and how long the audio file is
 for f in df.index:
-    rate, signal = wavfile.read("ESC-50-master/audio/" + f)
+    rate, signal = wavfile.read("clean/" + f)
     df.at[f,'length'] = signal.shape[0]/rate
     #print(rate)
     #print(signal)
@@ -92,23 +96,14 @@ for f in df.index:
 #get a list of all possible classes as well as the distrobution of the number of the particular class found compared to the total number of audio events
 classes = list(np.unique(df.category))
 class_dist = df.groupby(['category'])['length'].mean()
-#print(classes)
-print(class_dist)
-
-#plot a pie graph of the class distrobution 
-fig, ax = plt.subplots()
-ax.set_title('Class distribution', y=1.08)
-ax.pie(class_dist, labels=class_dist.index, autopct='%1.0f%%', shadow=False, startangle=0)
-ax.axis('equal')
-plt.show()
 
 #set a large samplesize and choose a random class
-n_samples = int(df['length'].sum() / 0.2 )
+n_samples = int(df['length'].sum() / 0.4 )
 prob_dist = class_dist / class_dist.sum()
-choices = np.random.choice(class_dist.index, p = prob_dist)
+#choices = np.random.choice(class_dist.index, p = prob_dist)
 #print(choices)
 
-config = Config(mode='conv')
+config = Config(mode='time')
 
 if(config.mode == 'time'):
     X, y = build_rand_feat()
@@ -123,4 +118,4 @@ elif(config.mode == 'conv'):
 
 class_weight = compute_class_weight('balanced', np.unique(y_flat), y_flat)
 
-model.fit(X, y, epochs=10, batch_size=32, shuffle=True, class_weight=class_weight)
+model.fit(X, y, epochs=80, batch_size=16, shuffle=True, class_weight=class_weight)

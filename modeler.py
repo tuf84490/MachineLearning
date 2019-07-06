@@ -32,7 +32,7 @@ def build_rand_feat():
     for _ in tqdm(range(n_samples)):
         rand_class = np.random.choice(class_dist.index, p=prob_dist)
         file = np.random.choice(df[df.category==rand_class].index)
-        rate, wav = wavfile.read('ESC-50-master/audio/' + file)
+        rate, wav = wavfile.read('data/audioFiles/' + file)
         label = df.at[file, 'category']
         rand_index = np.random.randint(0, wav.shape[0]-config.step)
         sample = wav[rand_index:rand_index+config.step]
@@ -49,7 +49,7 @@ def build_rand_feat():
         X = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
     elif(config.mode == 'time'):
         X = X.reshape(X.shape[0], X.shape[1], X.shape[2])
-    y = to_categorical(y, num_classes=50)
+    y = to_categorical(y, num_classes=6)   #here is where you change the number of classes
     config.data = (X,y)
     with open(config.p_path, 'wb') as handle:
         pickle.dump(config,handle,protocol=2)
@@ -84,7 +84,7 @@ def get_recurrent_model():
     model.add(TimeDistributed(Dense(16, activation='relu')))
     model.add(TimeDistributed(Dense(8, activation='relu')))
     model.add(Flatten())
-    model.add(Dense(50, activation='softmax'))
+    model.add(Dense(6, activation='softmax'))
     model.summary()
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
     return model
@@ -101,14 +101,14 @@ class Config:
         self.model_path = os.path.join('models', name + '.model')
         self.p_path = os.path.join('bin', name + '.p')
 
-df = pd.read_csv("ESC-50-master/meta/esc50.csv")
+df = pd.read_csv("data/homedata.csv")
 df = df.set_index('filename')
 
 #sample rate is 44100
 #read in the rate and signal of all the audio files
 #store the audio data in a dataframe. This dataframe contains all the audio data, their class, and how long the audio file is
 for f in df.index:
-    rate, signal = wavfile.read("clean/" + f)
+    rate, signal = wavfile.read("data/audioFiles/" + f)
     df.at[f,'length'] = signal.shape[0]/rate
     #print(rate)
     #print(signal)
@@ -123,7 +123,7 @@ prob_dist = class_dist / class_dist.sum()
 #choices = np.random.choice(class_dist.index, p = prob_dist)
 #print(choices)
 
-config = Config(mode='time', name='ESC_50')
+config = Config(mode='time', name='homedata')
 
 if(config.mode == 'time'):
     X, y = build_rand_feat()
@@ -140,5 +140,5 @@ class_weight = compute_class_weight('balanced', np.unique(y_flat), y_flat)
 
 checkpoint = ModelCheckpoint(config.model_path, monitor='val_acc', verbose=1, mode='max',save_best_only=True, save_weights_only=False, period=1)
 
-model.fit(X, y, epochs=80, batch_size=16, shuffle=True, class_weight=class_weight, validation_split=0.1, callbacks=[checkpoint])
+model.fit(X, y, epochs=40, batch_size=16, shuffle=True, class_weight=class_weight, validation_split=0.1, callbacks=[checkpoint])
 model.save(config.model_path)

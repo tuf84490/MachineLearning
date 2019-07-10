@@ -39,6 +39,7 @@ def build_rand_feat():
         X_sample = mfcc(sample, rate, numcep=config.nfeat, nfilt=config.nfilt,nfft=config.nfft)
         _min = min(np.amin(X_sample), _min)
         _max = max(np.amax(X_sample), _max)
+        print(X_sample)
         X.append(X_sample)
         y.append(classes.index(label))
     config.min = _min
@@ -48,6 +49,7 @@ def build_rand_feat():
     if config.mode == 'conv':
         X = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
     elif(config.mode == 'time'):
+        print(X.ndim)
         X = X.reshape(X.shape[0], X.shape[1], X.shape[2])
     y = to_categorical(y, num_classes=6)   #here is where you change the number of classes
     config.data = (X,y)
@@ -118,7 +120,7 @@ classes = list(np.unique(df.category))
 class_dist = df.groupby(['category'])['length'].mean()
 
 #set a large samplesize and choose a random class
-n_samples = int(df['length'].sum() / 0.4 )
+n_samples = 2 * int(df['length'].sum() / 0.1 )
 prob_dist = class_dist / class_dist.sum()
 #choices = np.random.choice(class_dist.index, p = prob_dist)
 #print(choices)
@@ -128,6 +130,7 @@ config = Config(mode='time', name='homedata')
 if(config.mode == 'time'):
     X, y = build_rand_feat()
     y_flat = np.argmax(y,axis=1)
+    print(X.ndim)
     input_shape = (X.shape[1], X.shape[2])
     model = get_recurrent_model()
 elif(config.mode == 'conv'):

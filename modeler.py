@@ -13,6 +13,7 @@ from keras.callbacks import ModelCheckpoint
 import matplotlib.pyplot as plt
 import librosa
 import pickle
+from cfg import Config
 
 def check_data():
     if os.path.isfile(config.p_path):
@@ -75,9 +76,6 @@ def get_recurrent_model():
     model = Sequential()
     model.add(LSTM(128,return_sequences=True, input_shape=input_shape))
     model.add(LSTM(128,return_sequences=True))
-    model.add(LSTM(128,return_sequences=True))
-    model.add(LSTM(128,return_sequences=True))
-    model.add(LSTM(128,return_sequences=True))
     model.add(Dropout(0.5))
     model.add(TimeDistributed(Dense(64, activation='relu')))
     model.add(TimeDistributed(Dense(32, activation='relu')))
@@ -88,18 +86,6 @@ def get_recurrent_model():
     model.summary()
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
     return model
-
-class Config:
-    def __init__(self, mode='time', nfilt=26, nfeat=13, nfft=1103, rate=44100, name='default'):
-        self.name = name
-        self.mode = mode
-        self.nfilt = nfilt
-        self.nfeat = nfeat
-        self.nfft = nfft
-        self.rate = rate
-        self.step = int(rate/10)
-        self.model_path = os.path.join('models', name + '.model')
-        self.p_path = os.path.join('bin', name + '.p')
 
 df = pd.read_csv("ESC-50-master/meta/esc50.csv")
 df = df.set_index('filename')
@@ -140,5 +126,5 @@ class_weight = compute_class_weight('balanced', np.unique(y_flat), y_flat)
 
 checkpoint = ModelCheckpoint(config.model_path, monitor='val_acc', verbose=1, mode='max',save_best_only=True, save_weights_only=False, period=1)
 
-model.fit(X, y, epochs=80, batch_size=16, shuffle=True, class_weight=class_weight, validation_split=0.1, callbacks=[checkpoint])
+model.fit(X, y, epochs=5, batch_size=32, shuffle=True, class_weight=class_weight, validation_split=0.1, callbacks=[checkpoint])
 model.save(config.model_path)

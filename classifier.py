@@ -25,6 +25,7 @@ def build_predictions(audio_dir):
             x = (x - config.min) / (config.max - config.min)
             if(config.mode == 'time'):
                 x = np.expand_dims(x, axis=0)
+            print(x)
             y_hat = model.predict(x)
             y_prob.append(y_hat)
             y_pred.append(np.argmax(y_hat))
@@ -36,9 +37,10 @@ df = pd.read_csv("ESC-50-master/meta/esc50.csv")
 classes = list(np.unique(df.category))
 fn2class = dict(zip(df.filename, df.category))
 p_path = os.path.join('bin', 'ESC_50.p')
-
+print(p_path)
 with open(p_path, 'rb') as handle:
     config = pickle.load(handle)
+    print(config)
 
 model = load_model(config.model_path)
 

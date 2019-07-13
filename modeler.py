@@ -22,35 +22,53 @@ def check_data():
             return tmp
     else:
         return None
+#build all the samples and place them into a model
 def build_rand_feat():
+    #check if a model already exists
     tmp = check_data()
     if tmp:
         return tmp.data[0], tmp.data[1]
     X = []
     y = []
     _min, _max = float('inf'), -float('inf')
+    #for the number of defined samples
     for _ in tqdm(range(n_samples)):
+        #get a random class file
         rand_class = np.random.choice(class_dist.index, p=prob_dist)
         file = np.random.choice(df[df.category==rand_class].index)
-        rate, wav = wavfile.read('data/audioFiles/' + file)
+        #read it in
+        rate, wav = wavfile.read('clean/' + file)
         label = df.at[file, 'category']
+        #get a random sample from the audio file of about 20ms
         rand_index = np.random.randint(0, wav.shape[0]-config.step)
         sample = wav[rand_index:rand_index+config.step]
+        #print(sample)
+        #print(len(sample))
+        #get the mfcc of that sample
         X_sample = mfcc(sample, rate, numcep=config.nfeat, nfilt=config.nfilt,nfft=config.nfft)
+        #print(X_sample)
+        #print(len(X_sample))
+        #print(len(X_sample[0]))
         _min = min(np.amin(X_sample), _min)
         _max = max(np.amax(X_sample), _max)
-        print(X_sample)
+        #print(X_sample)
+        #add this sample to our list of return points for the model
         X.append(X_sample)
         y.append(classes.index(label))
     config.min = _min
     config.max = _max
+    #X = [[X]]#this fixes the dimensions problem but its still not in the format of an array with the dimensions (nsamples, 9, 13[which is number of features])
+    #it fails to convert to a proper numpy array with the right size because this data fails to consistently be 9 by 13, sometimes its also 4 by 13.
+    #this issue could come from either an issue selecting a sample or some other issue with the mfcc function return values
     X,y = np.array(X), np.array(y)
-    X = (X-_min) / (_max - _min)
+    X = (X-_min) / (_max - _min)#normalize the values so they are all between 0 and 1 to work in the RNNs
     if config.mode == 'conv':
         X = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
     elif(config.mode == 'time'):
-        print(X.ndim)
+        #print(X.ndim)
+        print(X.shape)
         X = X.reshape(X.shape[0], X.shape[1], X.shape[2])
+        print(X.shape)
     y = to_categorical(y, num_classes=6)   #here is where you change the number of classes
     config.data = (X,y)
     with open(config.p_path, 'wb') as handle:
@@ -92,6 +110,7 @@ def get_recurrent_model():
     return model
 
 class Config:
+    #nfft works because window size is 1103
     def __init__(self, mode='time', nfilt=26, nfeat=13, nfft=1103, rate=44100, name='default'):
         self.name = name
         self.mode = mode
@@ -99,7 +118,7 @@ class Config:
         self.nfeat = nfeat
         self.nfft = nfft
         self.rate = rate
-        self.step = int(rate/10)
+        self.step = int(rate/20)
         self.model_path = os.path.join('models', name + '.model')
         self.p_path = os.path.join('bin', name + '.p')
 
@@ -110,7 +129,7 @@ df = df.set_index('filename')
 #read in the rate and signal of all the audio files
 #store the audio data in a dataframe. This dataframe contains all the audio data, their class, and how long the audio file is
 for f in df.index:
-    rate, signal = wavfile.read("data/audioFiles/" + f)
+    rate, signal = wavfile.read("clean/" + f)
     df.at[f,'length'] = signal.shape[0]/rate
     #print(rate)
     #print(signal)
@@ -143,5 +162,5 @@ class_weight = compute_class_weight('balanced', np.unique(y_flat), y_flat)
 
 checkpoint = ModelCheckpoint(config.model_path, monitor='val_acc', verbose=1, mode='max',save_best_only=True, save_weights_only=False, period=1)
 
-model.fit(X, y, epochs=40, batch_size=16, shuffle=True, class_weight=class_weight, validation_split=0.1, callbacks=[checkpoint])
+model.fit(X, y, epochs=5, batch_size=32, shuffle=True, class_weight=class_weight, validation_split=0.1, callbacks=[checkpoint])
 model.save(config.model_path)

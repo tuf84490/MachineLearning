@@ -88,14 +88,14 @@ def calc_fft(y, rate):
     return (Y, freq)
 
 #read in the csv with the training metadata, replace this line to train with other data
-df = pd.read_csv("ESC-50-master/meta/esc50.csv")
+df = pd.read_csv("data/homedata.csv")
 df = df.set_index('filename')
 
 #sample rate is 44100
 #read in the rate and signal of all the audio files
 #store the audio data in a dataframe. This dataframe contains all the audio data, their class, and how long the audio file is
 for f in df.index:
-    rate, signal = wavfile.read("ESC-50-master/audio/" + f)
+    rate, signal = wavfile.read("data/audioFiles/" + f)
     df.at[f,'length'] = signal.shape[0]/rate
     #print(rate)
     #print(signal)
@@ -122,7 +122,7 @@ mfccs = {}
 #as all the calculated fourier transforms, filterbanks, and mel frequencies (for just 10 of the 40 classes as an example that the code is working).
 for c in classes:
     wav_file = df[df.category == c].iloc[0,0]
-    signal, rate = librosa.load("ESC-50-master/audio/"+wav_file, sr=44100)
+    signal, rate = librosa.load("data/audioFiles/"+wav_file, sr=44100)
     mask = envelope(signal, rate, 0.0005)
     signal = signal[mask]
     signals[c] = signal
@@ -132,21 +132,21 @@ for c in classes:
     mel = mfcc(signal[:rate], rate, numcep=13, nfilt=26, nfft=1103).T
     mfccs[c] = mel
 
-plot_signals(signals)
-plt.show()
+#plot_signals(signals)
+#plt.show()
 
-plot_fft(fft)
-plt.show()
+#plot_fft(fft)
+#plt.show()
 
-plot_fbank(fbank)
-plt.show()
+#plot_fbank(fbank)
+#plt.show()
 
-plot_mfccs(mfccs)
-plt.show()
+#plot_mfccs(mfccs)
+#plt.show()
 
 #write the cleaned audio files to the 'clean' audio directory
 if len(os.listdir('clean')) == 0:
     for f in tqdm(df.filename):
-        signal, rate = librosa.load('ESC-50-master/audio/' + f, sr=16000)
+        signal, rate = librosa.load('data/audioFiles/' + f, sr=16000)
         mask = envelope(signal, rate, 0.0005)
         wavfile.write(filename='clean/'+f, rate=rate, data=signal[mask])

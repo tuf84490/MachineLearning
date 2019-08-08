@@ -13,6 +13,7 @@ from keras.callbacks import ModelCheckpoint
 import matplotlib.pyplot as plt
 import librosa
 import pickle
+from cfg import Config
 
 def check_data():
     if os.path.isfile(config.p_path):
@@ -95,9 +96,9 @@ def get_recurrent_model():
     model = Sequential()
     model.add(LSTM(128,return_sequences=True, input_shape=input_shape))
     model.add(LSTM(128,return_sequences=True))
-    model.add(LSTM(128,return_sequences=True))
-    model.add(LSTM(128,return_sequences=True))
-    model.add(LSTM(128,return_sequences=True))
+    #model.add(LSTM(128,return_sequences=True))
+    #model.add(LSTM(128,return_sequences=True))
+    #model.add(LSTM(128,return_sequences=True))
     model.add(Dropout(0.5))
     model.add(TimeDistributed(Dense(64, activation='relu')))
     model.add(TimeDistributed(Dense(32, activation='relu')))
@@ -108,19 +109,6 @@ def get_recurrent_model():
     model.summary()
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
     return model
-
-class Config:
-    #nfft works because window size is 1103
-    def __init__(self, mode='time', nfilt=26, nfeat=13, nfft=1103, rate=44100, name='default'):
-        self.name = name
-        self.mode = mode
-        self.nfilt = nfilt
-        self.nfeat = nfeat
-        self.nfft = nfft
-        self.rate = rate
-        self.step = int(rate/20)
-        self.model_path = os.path.join('models', name + '.model')
-        self.p_path = os.path.join('bin', name + '.p')
 
 df = pd.read_csv("data/homedata.csv")
 df = df.set_index('filename')
@@ -139,7 +127,7 @@ classes = list(np.unique(df.category))
 class_dist = df.groupby(['category'])['length'].mean()
 
 #set a large samplesize and choose a random class
-n_samples = 2 * int(df['length'].sum() / 0.1 )
+n_samples = 4 * int(df['length'].sum() / 0.1)
 prob_dist = class_dist / class_dist.sum()
 #choices = np.random.choice(class_dist.index, p = prob_dist)
 #print(choices)
@@ -162,5 +150,5 @@ class_weight = compute_class_weight('balanced', np.unique(y_flat), y_flat)
 
 checkpoint = ModelCheckpoint(config.model_path, monitor='val_acc', verbose=1, mode='max',save_best_only=True, save_weights_only=False, period=1)
 
-model.fit(X, y, epochs=5, batch_size=32, shuffle=True, class_weight=class_weight, validation_split=0.1, callbacks=[checkpoint])
+model.fit(X, y, epochs=20, batch_size=16, shuffle=True, class_weight=class_weight, validation_split=0.1, callbacks=[checkpoint])
 model.save(config.model_path)

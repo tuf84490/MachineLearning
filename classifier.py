@@ -18,14 +18,14 @@ def build_predictions(audio_dir):
         label = fn2class[fn]
         c = classes.index(label)
         y_prob = []
-        print(fn)
+        #print(fn)
         for i in range(0, wav.shape[0]-config.step, config.step):
             sample = wav[i:i+config.step]
             #print(sample)
             x = mfcc(sample, rate, numcep=config.nfeat, nfilt=config.nfilt,nfft=config.nfft)
             x = (x - config.min) / (config.max - config.min)
             if(config.mode == 'time'):
-                x = np.expand_dims(x, axis=0)
+                x = x.reshape(1, x.shape[0], x.shape[1])
             #print(x.shape)
             y_hat = model.predict(x)
             y_prob.append(y_hat)
@@ -34,26 +34,34 @@ def build_predictions(audio_dir):
         fn_prob[fn] = np.mean(y_prob, axis=0).flatten()
     return y_true, y_pred, fn_prob
 
-df = pd.read_csv("data/homedata2.csv")
+df = pd.read_csv("data/homedata.csv")
 classes = list(np.unique(df.category))
 fn2class = dict(zip(df.filename, df.category))
-p_path = os.path.join('bin', 'ESC_50.p')
+p_path = os.path.join('bin', 'homedata.p')
 
 with open(p_path, 'rb') as handle:
     config = pickle.load(handle)
 
 model = load_model(config.model_path)
 
-y_true, y_pred, fn_prob = build_predictions('data/audioFiles')
+y_true, y_pred, fn_prob = build_predictions('splitData')
 acc_score = accuracy_score(y_true=y_true, y_pred=y_pred)
 
 y_probs = []
 for i, row in df.iterrows():
     y_prob = fn_prob[row.filename]
     y_probs.append(y_prob)
+    #print(type(y_prob))
     for c, p in zip(classes, y_prob):
         df.at[i,c] = p
-
+'''
+print(len(y_probs))
+print(y_probs)
+print(len(classes))
+print(classes)
+print(y_pred)
+print(len(y_pred))
+'''
 y_pred = [classes[np.argmax(y)] for y in y_probs]
 df['y_pred'] = y_pred
 

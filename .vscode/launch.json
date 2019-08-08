@@ -13,6 +13,14 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "homedata",
+            "type": "python",
+            "request": "launch",
+            "cwd" : "/Users/GenoMcLongDick/MachineLearning",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python: Current File (Integrated Terminal)",
             "type": "python",
             "request": "launch",

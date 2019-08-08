@@ -96,9 +96,12 @@ def get_recurrent_model():
     model = Sequential()
     model.add(LSTM(128,return_sequences=True, input_shape=input_shape))
     model.add(LSTM(128,return_sequences=True))
+<<<<<<< HEAD
     #model.add(LSTM(128,return_sequences=True))
     #model.add(LSTM(128,return_sequences=True))
     #model.add(LSTM(128,return_sequences=True))
+=======
+>>>>>>> eeb4a98a39810f81e7451a7562788498b798140f
     model.add(Dropout(0.5))
     model.add(TimeDistributed(Dense(64, activation='relu')))
     model.add(TimeDistributed(Dense(32, activation='relu')))
@@ -110,7 +113,11 @@ def get_recurrent_model():
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
     return model
 
+<<<<<<< HEAD
 df = pd.read_csv("data/homedata.csv")
+=======
+df = pd.read_csv("ESC-50-master/meta/esc50.csv")
+>>>>>>> eeb4a98a39810f81e7451a7562788498b798140f
 df = df.set_index('filename')
 
 #sample rate is 44100
@@ -150,5 +157,9 @@ class_weight = compute_class_weight('balanced', np.unique(y_flat), y_flat)
 
 checkpoint = ModelCheckpoint(config.model_path, monitor='val_acc', verbose=1, mode='max',save_best_only=True, save_weights_only=False, period=1)
 
+<<<<<<< HEAD
 model.fit(X, y, epochs=20, batch_size=16, shuffle=True, class_weight=class_weight, validation_split=0.1, callbacks=[checkpoint])
+=======
+model.fit(X, y, epochs=5, batch_size=32, shuffle=True, class_weight=class_weight, validation_split=0.1, callbacks=[checkpoint])
+>>>>>>> eeb4a98a39810f81e7451a7562788498b798140f
 model.save(config.model_path)

@@ -1,14 +1,9 @@
-# MachineLearning
-summer research work on IoT security using machine learning
+# Audio Event Detection and Classification using LSTM RNNs
+This project trains a Long Short Term Memory Recurring Neural Network with some sample audio events of common home or office occurences (door closing, microwave heating, etc). The model can then take in audio clips and then classify the clip as a specific event based on its training. It can also do the same on one large audio file by splitting it up and doing the same. The code can also be edited to detect other audio events besides common home/office occurances. In the data/oldData folder you will find testing and training data for general purpose audio events or for audio surveillence events (screams, gunshots, glass breaking). 
 
-# Audio Processing
-## musicAudio and MIVIA folders
-Currently working on taking audio files and processing them to be more usable by the LSTM RNN.
+## Creating and training the model
+The preprocessing.py script runs a filter over all files in the data/audioFiles directory and for each file after it gets cleaned it gets placed in the clean folder. These files are then used by the modeler.py script to create the LSTM RNN model (the script can also be used to create a convolutional neural network model, however LSTM was desired for this project). This will then create a model in the models directory and a binary file to store metadata about the file in the bin directory. This model is now ready for testing. You can now run the classifier.py script to feed the same audio files into the model, and confirm that it predicts the correct classifications. It will create a predictions.csv file in this directory and you can see that it should get 100% of the predictions correct.
 
-# Regression
-## temperatureRegression folder
-taking temperature data from three days and using polynomial regression of degree 5 (adjustable) to train a best fit line for the mean of all three days temperature readings
-
-# K-Means Clustering
-## powerDetection folder
-simulating an attack where the attacker has compromised a smartplug and is trying to identify what devices are plugged into it by reading the power usage and timestamp data. This data can be plotted and then kmeans clustering can be performed to group (k value is 8 for this, but can be easily adjusted) the plots into 3 groups. We can then look at these groups and easily determine which devices are using the smartplug at a specific time.  
+## Classifing audio files
+For the purpose of this project the task was to run classifications on the many events found in the one main long audio file (not included in this repo because it was too large to store in github). In order to do this the createSamples.py script is run and it will break the main audio file into many small 4 second audio files so that the classifier gets files similar to the data it was trained with. It does this by listening to the audio file and waiting until the sound passes a certain sound threshold. Once this threshold is passed it records the next 4 seconds and saves it into the splitData directory. It also records the timestamps of when the event occurred within the large audio file. This and other metadata is saved to the splitHomeMetadata binary file and is used by other scripts. Once this is done the blindCleaner.py takes these files and does the same preprocessing steps that the preprocessing.py script does, but saves the new files to the cleanHomeData directory. After this the blindClassifier.py script then takes in these files and the binary metadata file and make predicions on the classifications. If the model predicts an event with under 50% accuracy it then considers it not one of its testing events and labels it an "other event". 
+The model requires a csv that contains all unique event class types (the same csv that is used to train the model will work). Once the classifier is finished making its predictions it also outputs the predictions to the predictions.csv file. The data contains the name of the file that was classified, the start and end times of the audio event within the long audio file, the probability likelihood that the classified event belongs to that category of event, and the models final prediction.  

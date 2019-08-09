@@ -1,0 +1,2 @@
+# DATA
+This contains the data used to train the model used in this project. It also contains other data sets that could also be used if you want to train the model to detect other kinds of audio events. They are found in the 'oldData' directory.

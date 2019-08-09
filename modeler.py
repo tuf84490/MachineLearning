@@ -96,12 +96,9 @@ def get_recurrent_model():
     model = Sequential()
     model.add(LSTM(128,return_sequences=True, input_shape=input_shape))
     model.add(LSTM(128,return_sequences=True))
-<<<<<<< HEAD
     #model.add(LSTM(128,return_sequences=True))
     #model.add(LSTM(128,return_sequences=True))
     #model.add(LSTM(128,return_sequences=True))
-=======
->>>>>>> eeb4a98a39810f81e7451a7562788498b798140f
     model.add(Dropout(0.5))
     model.add(TimeDistributed(Dense(64, activation='relu')))
     model.add(TimeDistributed(Dense(32, activation='relu')))
@@ -113,11 +110,7 @@ def get_recurrent_model():
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
     return model
 
-<<<<<<< HEAD
 df = pd.read_csv("data/homedata.csv")
-=======
-df = pd.read_csv("ESC-50-master/meta/esc50.csv")
->>>>>>> eeb4a98a39810f81e7451a7562788498b798140f
 df = df.set_index('filename')
 
 #sample rate is 44100

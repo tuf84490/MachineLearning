@@ -25,13 +25,8 @@ def build_predictions(audio_dir):
             x = mfcc(sample, rate, numcep=config.nfeat, nfilt=config.nfilt,nfft=config.nfft)
             x = (x - config.min) / (config.max - config.min)
             if(config.mode == 'time'):
-<<<<<<< HEAD
                 x = x.reshape(1, x.shape[0], x.shape[1])
             #print(x.shape)
-=======
-                x = np.expand_dims(x, axis=0)
-            print(x)
->>>>>>> eeb4a98a39810f81e7451a7562788498b798140f
             y_hat = model.predict(x)
             y_prob.append(y_hat)
             y_pred.append(np.argmax(y_hat))
